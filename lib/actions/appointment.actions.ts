@@ -5,15 +5,12 @@ import {
   APPOINTMENT_COLLECTION_ID,
   DATABASE_ID,
   databases,
-  ENDPOINT,
   messaging,
-  PATIENT_COLLECTION_ID,
-  PROJECT_ID,
+  
 } from "../appwrite.config";
 import { formatDateTime, parseStringify } from "../utils";
-import { Appointment } from '@/types/appwrite.types';
 import { revalidatePath } from "next/cache";
-import { format } from "path";
+
 
 export const createAppointment = async (appointment: CreateAppointmentParams) => {
   try {
@@ -185,4 +182,4 @@ export const sendSMSNotification = async (userId: string, content: string) =>{
    throw error;
   }
 }
-// // TEST CHANGE - Gagare
+

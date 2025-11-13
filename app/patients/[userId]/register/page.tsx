@@ -4,7 +4,7 @@ import RegisterForm from "@/components/forms/RegisterForm";
 import { getUser } from "@/lib/actions/patient.actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import * as Sentry from '@sentry/nextjs'
+
 
 
 interface SearchParamProps {

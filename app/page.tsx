@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import PatientForm from '@/components/forms/PatientForm';
 import Link from "next/link";
 import PasskeyModal from "@/components/PasskeyModal";
@@ -18,9 +17,9 @@ const Home = async ({ searchParams }: SearchParamProps) => {
 
       <section className="remove-scrollbar container my-auto">
         <div className="sub-container max-w-[496px]">
-          <Link href="/?admin=true" className="text-green-500">
+          {/* <Link href="/?admin=true" className="text-green-500">
               Admin
-            </Link>
+            </Link> */}
           <Image 
             src="/assets/icons/logo-full.svg" 
             height={100}
