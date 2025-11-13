@@ -5,6 +5,10 @@ import { Doctors } from "@/constants";
 import { getAppointment } from "@/lib/actions/appointment.actions";
 import { formatDateTime } from "@/lib/utils";
 
+
+export const dynamic = "force-dynamic";
+
+
 interface SearchParamProps {
   params: { userId: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -25,6 +29,10 @@ const Success = async ({ params, searchParams }: SearchParamProps) => {
   return (
     <div className="flex h-screen max-h-screen px-[5%]">
       <div className="success-img flex flex-col justify-between w-full">
+
+         <Link href="/?admin=true" className="text-green-500">
+              Admin
+            </Link>
         {/* Logo */}
         <Link href="/" className="mt-6 inline-block">
         {/* eslint-disable-next-line @next/next/no-img-element */}

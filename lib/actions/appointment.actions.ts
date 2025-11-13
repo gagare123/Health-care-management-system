@@ -6,21 +6,17 @@ import {
   DATABASE_ID,
   databases,
   ENDPOINT,
+  messaging,
+  PATIENT_COLLECTION_ID,
   PROJECT_ID,
 } from "../appwrite.config";
-import { parseStringify } from "../utils";
+import { formatDateTime, parseStringify } from "../utils";
 import { Appointment } from '@/types/appwrite.types';
 import { revalidatePath } from "next/cache";
+import { format } from "path";
 
 export const createAppointment = async (appointment: CreateAppointmentParams) => {
   try {
-    console.log({
-      ENDPOINT,
-      PROJECT_ID,
-      DATABASE_ID,
-      APPOINTMENT_COLLECTION_ID,
-    });
-
     // ✅ Ensure schedule is ISO string
     const appointmentData = {
       ...appointment,
@@ -29,9 +25,7 @@ export const createAppointment = async (appointment: CreateAppointmentParams) =>
           ? appointment.schedule
           : new Date(appointment.schedule).toISOString(),
     };
-   console.log("Creating appointment document with:", appointmentData);
 
-  
     // ✅ Create the appointment
     const newAppointment = await databases.createDocument(
       DATABASE_ID!,
@@ -42,7 +36,7 @@ export const createAppointment = async (appointment: CreateAppointmentParams) =>
 
     return parseStringify(newAppointment);
   } catch (error) {
-    console.error("❌ Error creating appointment:", error);
+    console.error("Error creating appointment:", error);
     throw error;
   }
 };
@@ -58,20 +52,32 @@ export const getAppointment = async (appointmentId: string) => {
     );
     return parseStringify(appointment);
   } catch (error) {
-    console.error("❌ Error fetching appointment:", error);
+    console.error("Error fetching appointment:", error);
     return null;
   }
 };
 
-// GET RECENT APPOINTMENT
+//GET RECENT APPOINTMENT
 
 export const getRecentAppointmentList = async () => {
   try {
     const appointments = await databases.listDocuments(
       DATABASE_ID!,
       APPOINTMENT_COLLECTION_ID!,
-      [Query.orderDesc('$createdAt')]
+      [Query.orderDesc("$createdAt")]
     );
+
+    // Ensure patient data is properly populated
+    const enrichedAppointments = appointments.documents.map((appointment) => {
+      // If patient is not populated, try to fetch it
+      if (!appointment.patient || typeof appointment.patient === 'string') {
+        return {
+          ...appointment,
+          patient: null, // Set to null if missing
+        };
+      }
+      return appointment;
+    });
 
     const initialCounts = {
       scheduledCount: 0,
@@ -79,37 +85,54 @@ export const getRecentAppointmentList = async () => {
       cancelledCount: 0,
     };
 
-    // ✅ Fixed: Remove empty brackets []
-    const counts = appointments.documents.reduce(
+    const counts = enrichedAppointments.reduce(
       (acc, appointment) => {
-      if (appointment.status === 'scheduled') {
-        acc.scheduledCount += 1;
-      } else if (appointment.status === 'pending') {
-        acc.pendingCount += 1;
-      } else if (appointment.status === 'cancelled') {
-        acc.cancelledCount += 1;
-      }
-
-      return acc;
-    }, initialCounts);
+        switch (appointment.status) {
+          case "scheduled":
+            acc.scheduledCount++;
+            break;
+          case "pending":
+            acc.pendingCount++;
+            break;
+          case "cancelled":
+            acc.cancelledCount++;
+            break;
+        }
+        return acc;
+      },
+      initialCounts
+    );
 
     const data = {
       totalCount: appointments.total,
       ...counts,
-      documents: appointments.documents
+      documents: enrichedAppointments,
     };
 
-    return parseStringify(data);
+    return data;
   } catch (error) {
-    console.error(" Error fetching recent appointments:", error);
-    return null;
+    console.error(
+      "An error occurred while retrieving the recent appointments:",
+      error
+    );
+    // Return empty structure instead of throwing
+    return {
+      totalCount: 0,
+      scheduledCount: 0,
+      pendingCount: 0,
+      cancelledCount: 0,
+      documents: [],
+    };
   }
 };
 
 // updat appointment
 
 export const  updateAppointment = async ({
-  appointmentId, userId, appointment, type}: 
+  appointmentId, 
+  userId: _userId,
+  appointment,
+  type: _type } : 
 UpdateAppointmentParams) =>{
 try{
 
@@ -123,11 +146,43 @@ try{
   if(!updateAppointment){
     throw new Error('Appointment not found');
   }
-// SMS service
+   
+  const smsMessage = 
+  `Hi, it's CarePulse.
+  ${_type === 'schedule'
+    ? `Your appointment has been scheduled for ${formatDateTime(
+      appointment.schedule!
+    )}`
+    : `We regret to inform you that your appointment has been cancelled
+    for the following reason: ${appointment.cancellationtReason}`
+  }`;
+  
+ await sendSMSNotification(_userId, smsMessage);
 
 revalidatePath('/admin');
 return parseStringify(updateAppointment)
 } catch(error){
-  console.log(error)
+  console.error("Error updating appointment:", error);
+  throw error;
 }
 }
+ 
+
+//Create SMS Notification
+export const sendSMSNotification = async (userId: string, content: string) =>{
+  try{
+    const message = await messaging.createSms(
+      ID.unique(),
+      content,
+      [],
+      [userId]
+    )
+
+   return parseStringify(message);
+
+  }catch (error){
+   console.error("Error sending SMS notification:", error);
+   throw error;
+  }
+}
+// // TEST CHANGE - Gagare

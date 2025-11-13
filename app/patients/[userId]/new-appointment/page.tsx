@@ -34,7 +34,7 @@ export default async function NewAppointment({ params }: SearchParamProps) {
       </section>
 
       {/* Right-side image - KEY: added h-auto */}
-      {/* appointment-img.png */}
+    
       <Image
         src="/assets/images/carepulse1-img.jpg"
         height={1000}

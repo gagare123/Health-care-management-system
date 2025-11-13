@@ -52,7 +52,7 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
 
     // ✅ Validate user object first
     if (!user || !user.$id) {
-      console.error("❌ User object is missing or invalid:", user);
+      console.error("User object is missing or invalid:", user);
       alert("User information is missing. Please try logging in again.");
       setIsLoading(false);
       return;
@@ -116,7 +116,7 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
         throw new Error("Failed to register patient");
       }
     } catch (error: any) {
-      console.error("❌ Error registering patient:", error);
+      console.error(" Error registering patient:", error);
       alert(`Failed to register: ${error.message || "Unknown error"}`);
     } finally {
       setIsLoading(false);

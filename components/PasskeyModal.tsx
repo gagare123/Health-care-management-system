@@ -1,30 +1,28 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React from 'react'
 import Image from 'next/image'
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+ 
 } from "@/components/ui/alert-dialog"
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-import {useState} from 'react'
+import {useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Value } from '@radix-ui/react-select'
+//import { Value } from '@radix-ui/react-select'
 import {  decryptKey, encryptKey } from '../lib/utils';
 
-const passkeyModal = () => {
+const PasskeyModal = () => {
   const router = useRouter();
   const path = usePathname()
 const [open, setOpen] = useState(true);
@@ -117,4 +115,4 @@ const closeModal = () => {
   )
 }
 
-export default passkeyModal
+export default PasskeyModal
