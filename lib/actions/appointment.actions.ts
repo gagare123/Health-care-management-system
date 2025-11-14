@@ -1,3 +1,4 @@
+
 "use server";
 
 import { ID, Query } from "node-appwrite";
@@ -6,15 +7,17 @@ import {
   DATABASE_ID,
   databases,
   messaging,
+   PATIENT_COLLECTION_ID,
   
 } from "../appwrite.config";
 import { formatDateTime, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
+import type { Appointment } from "@/types/appwrite.types";
 
 
 export const createAppointment = async (appointment: CreateAppointmentParams) => {
   try {
-    // ✅ Ensure schedule is ISO string
+    //  Ensure schedule is ISO string
     const appointmentData = {
       ...appointment,
       schedule:
@@ -23,7 +26,7 @@ export const createAppointment = async (appointment: CreateAppointmentParams) =>
           : new Date(appointment.schedule).toISOString(),
     };
 
-    // ✅ Create the appointment
+    // Create the appointment
     const newAppointment = await databases.createDocument(
       DATABASE_ID!,
       APPOINTMENT_COLLECTION_ID!,
@@ -56,7 +59,80 @@ export const getAppointment = async (appointmentId: string) => {
 
 //GET RECENT APPOINTMENT
 
-export const getRecentAppointmentList = async () => {
+// export const getRecentAppointmentList = async () => {
+//   try {
+//     const appointments = await databases.listDocuments(
+//       DATABASE_ID!,
+//       APPOINTMENT_COLLECTION_ID!,
+//       [Query.orderDesc("$createdAt")]
+//     );
+
+//     // Ensure patient data is properly populated
+//     const enrichedAppointments = appointments.documents.map((appointment) => {
+//       // If patient is not populated, try to fetch it
+//       if (!appointment.patient || typeof appointment.patient === 'string') {
+//         return {
+//           ...appointment,
+//           patient: null, // Set to null if missing
+//         };
+//       }
+//       return appointment;
+//     });
+
+//     const initialCounts = {
+//       scheduledCount: 0,
+//       pendingCount: 0,
+//       cancelledCount: 0,
+//     };
+
+//     const counts = enrichedAppointments.reduce(
+//       (acc, appointment) => {
+//         switch (appointment.status) {
+//           case "scheduled":
+//             acc.scheduledCount++;
+//             break;
+//           case "pending":
+//             acc.pendingCount++;
+//             break;
+//           case "cancelled":
+//             acc.cancelledCount++;
+//             break;
+//         }
+//         return acc;
+//       },
+//       initialCounts
+//     );
+
+//     const data = {
+//       totalCount: appointments.total,
+//       ...counts,
+//       documents: enrichedAppointments,
+//     };
+
+//     return data;
+//   } catch (error) {
+//     console.error(
+//       "An error occurred while retrieving the recent appointments:",
+//       error
+//     );
+//     // Return empty structure instead of throwing
+//     return {
+//       totalCount: 0,
+//       scheduledCount: 0,
+//       pendingCount: 0,
+//       cancelledCount: 0,
+//       documents: [],
+//     };
+//   }
+// };
+
+export const getRecentAppointmentList = async (): Promise<{
+  totalCount: number;
+  scheduledCount: number;
+  pendingCount: number;
+  cancelledCount: number;
+  documents: Appointment[];
+}> => {
   try {
     const appointments = await databases.listDocuments(
       DATABASE_ID!,
@@ -64,55 +140,70 @@ export const getRecentAppointmentList = async () => {
       [Query.orderDesc("$createdAt")]
     );
 
-    // Ensure patient data is properly populated
-    const enrichedAppointments = appointments.documents.map((appointment) => {
-      // If patient is not populated, try to fetch it
-      if (!appointment.patient || typeof appointment.patient === 'string') {
-        return {
-          ...appointment,
-          patient: null, // Set to null if missing
-        };
-      }
-      return appointment;
-    });
+    const enrichedAppointments = await Promise.all(
+      appointments.documents.map(async (appointment) => {
+        try {
+          // Extract ID from relationship field
+          const patientId =
+            typeof appointment.patient === "string"
+              ? appointment.patient
+              : appointment.patient?.$id; // relationship object
 
+          if (!patientId) {
+            console.warn(" Missing patient relationship for:", appointment.$id);
+            return { ...appointment, patient: null };
+          }
+
+          const patientDoc = await databases.getDocument(
+            DATABASE_ID!,
+            PATIENT_COLLECTION_ID!,  // ✔️ correct collection ID
+            patientId                // ✔️ ALWAYS pass the $id only
+          );
+
+          return { ...appointment, patient: patientDoc };
+
+        } catch (error) {
+          console.error(
+            ` Failed to fetch patient for appointment ${appointment.$id}:`,
+            error
+          );
+
+          return { ...appointment, patient: null };
+        }
+      })
+    );
+
+    // Count statuses
     const initialCounts = {
       scheduledCount: 0,
       pendingCount: 0,
       cancelledCount: 0,
     };
 
-    const counts = enrichedAppointments.reduce(
-      (acc, appointment) => {
-        switch (appointment.status) {
-          case "scheduled":
-            acc.scheduledCount++;
-            break;
-          case "pending":
-            acc.pendingCount++;
-            break;
-          case "cancelled":
-            acc.cancelledCount++;
-            break;
-        }
-        return acc;
-      },
-      initialCounts
-    );
+    const counts = enrichedAppointments.reduce((acc, appointment) => {
+      switch (appointment.status) {
+        case "scheduled":
+          acc.scheduledCount++;
+          break;
+        case "pending":
+          acc.pendingCount++;
+          break;
+        case "cancelled":
+          acc.cancelledCount++;
+          break;
+      }
+      return acc;
+    }, initialCounts);
 
-    const data = {
+    return {
       totalCount: appointments.total,
       ...counts,
-      documents: enrichedAppointments,
+      documents: enrichedAppointments as Appointment[],
     };
 
-    return data;
   } catch (error) {
-    console.error(
-      "An error occurred while retrieving the recent appointments:",
-      error
-    );
-    // Return empty structure instead of throwing
+    console.error("Error retrieving recent appointments:", error);
+
     return {
       totalCount: 0,
       scheduledCount: 0,
@@ -122,6 +213,7 @@ export const getRecentAppointmentList = async () => {
     };
   }
 };
+
 
 // updat appointment
 

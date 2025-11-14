@@ -24,13 +24,26 @@ export interface Patient extends Models.Document {
   privacyConsent: boolean;
 }
 
+// export interface Appointment extends Models.Document {
+//   patient: Patient;
+//   schedule: Date;
+//   status: Status;
+//   primaryPhysician: string;
+//   reason: string;
+//   note: string;
+//   userId: string;
+//   cancellationReason: string | null;
+// }
+
+
 export interface Appointment extends Models.Document {
-  patient: Patient;
-  schedule: Date;
-  status: Status;
-  primaryPhysician: string;
+  patient: string | Patient | null; // relationship (Appwrite returns ID or expanded doc)
+  schedule: string;                 // datetime stored as string
   reason: string;
-  note: string;
+  note: string | null;
+  primaryPhysician: string;
+  status: "scheduled" | "pending" | "cancelled";
+
   userId: string;
   cancellationReason: string | null;
 }
