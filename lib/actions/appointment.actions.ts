@@ -59,73 +59,6 @@ export const getAppointment = async (appointmentId: string) => {
 
 //GET RECENT APPOINTMENT
 
-// export const getRecentAppointmentList = async () => {
-//   try {
-//     const appointments = await databases.listDocuments(
-//       DATABASE_ID!,
-//       APPOINTMENT_COLLECTION_ID!,
-//       [Query.orderDesc("$createdAt")]
-//     );
-
-//     // Ensure patient data is properly populated
-//     const enrichedAppointments = appointments.documents.map((appointment) => {
-//       // If patient is not populated, try to fetch it
-//       if (!appointment.patient || typeof appointment.patient === 'string') {
-//         return {
-//           ...appointment,
-//           patient: null, // Set to null if missing
-//         };
-//       }
-//       return appointment;
-//     });
-
-//     const initialCounts = {
-//       scheduledCount: 0,
-//       pendingCount: 0,
-//       cancelledCount: 0,
-//     };
-
-//     const counts = enrichedAppointments.reduce(
-//       (acc, appointment) => {
-//         switch (appointment.status) {
-//           case "scheduled":
-//             acc.scheduledCount++;
-//             break;
-//           case "pending":
-//             acc.pendingCount++;
-//             break;
-//           case "cancelled":
-//             acc.cancelledCount++;
-//             break;
-//         }
-//         return acc;
-//       },
-//       initialCounts
-//     );
-
-//     const data = {
-//       totalCount: appointments.total,
-//       ...counts,
-//       documents: enrichedAppointments,
-//     };
-
-//     return data;
-//   } catch (error) {
-//     console.error(
-//       "An error occurred while retrieving the recent appointments:",
-//       error
-//     );
-//     // Return empty structure instead of throwing
-//     return {
-//       totalCount: 0,
-//       scheduledCount: 0,
-//       pendingCount: 0,
-//       cancelledCount: 0,
-//       documents: [],
-//     };
-//   }
-// };
-
 export const getRecentAppointmentList = async (): Promise<{
   totalCount: number;
   scheduledCount: number;
@@ -134,11 +67,18 @@ export const getRecentAppointmentList = async (): Promise<{
   documents: Appointment[];
 }> => {
   try {
-    const appointments = await databases.listDocuments(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      [Query.orderDesc("$createdAt")]
-    );
+    // const appointments = await databases.listDocuments(
+    //   DATABASE_ID!,
+    //   APPOINTMENT_COLLECTION_ID!,
+    //   [Query.orderDesc("$createdAt")]
+    // );
+    
+    const appointments = await databases.listDocuments<Appointment>(
+  DATABASE_ID!,
+  APPOINTMENT_COLLECTION_ID!,
+  [Query.orderDesc("$createdAt")]
+);
+
 
     const enrichedAppointments = await Promise.all(
       appointments.documents.map(async (appointment) => {
