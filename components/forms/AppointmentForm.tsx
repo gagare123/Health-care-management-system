@@ -522,9 +522,9 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  //// @ts-expect-error - zodResolver has type issues with z.coerce.date()
   const form = useForm<PatientFormValues>({
-    resolver: zodResolver(PatientFormValidation),
+    //// @ts-expect-error - zodResolver has type issues with z.coerce.date()
+    resolver: zodResolver(PatientFormValidation) as any,
     defaultValues: {
       ...PatientFormDefaultValues,
       name: user?.name || "",
@@ -602,6 +602,7 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
 
   return (
     <Form {...form}>
+      @ts-expect-error - form type compatibility issue with zodResolver
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12 flex-1">
         <section className="space-y-4">
           <h1 className="header">Welcome 👋</h1>
