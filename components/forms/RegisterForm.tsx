@@ -382,10 +382,13 @@
 // };
 
 // export default RegisterForm;
+
+
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl } from "@/components/ui/form";
 import CustomFormField from "../CustomFormField";
@@ -413,13 +416,38 @@ interface RegisterFormProps {
   user: User;
 }
 
+// Define the form values type explicitly
+type PatientFormValues = {
+  name: string;
+  email: string;
+  phone: string;
+  birthDate: Date;
+  gender: "male" | "female" | "other";
+  address: string;
+  occupation: string;
+  emergencyContactName: string;
+  emergencyContactNumber: string;
+  primaryPhysician: string;
+  insuranceProvider: string;
+  insurancePolicyNumber: string;
+  allergies?: string;
+  currentMedication?: string;
+  familyMedicalHistory?: string;
+  pastMedicalHistory?: string;
+  identificationType?: string;
+  identificationNumber?: string;
+  identificationDocument?: File[];
+  treatmentConsent: boolean;
+  disclosureConsent: boolean;
+  privacyConsent: boolean;
+};
+
 const RegisterForm = ({ user }: RegisterFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof PatientFormValidation>>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(PatientFormValidation) as any,
+  const form = useForm<PatientFormValues>({
+    resolver: zodResolver(PatientFormValidation),
     defaultValues: {
       ...PatientFormDefaultValues,
       name: user?.name || "",
@@ -428,7 +456,7 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof PatientFormValidation>) => {
+  const onSubmit = async (values: PatientFormValues) => {
     setIsLoading(true);
 
     // ✅ Validate user object first
