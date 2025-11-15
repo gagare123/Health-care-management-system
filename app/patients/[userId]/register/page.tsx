@@ -33,9 +33,9 @@ const Register = async ({ params }: SearchParamProps) => {
       <section className="remove-scrollbar container">
         <div className="sub-container max-w-[860px] flex-1 flex-col py-10">
          
-          <Link href="/?admin=true" className="text-green-500">
+          {/* <Link href="/?admin=true" className="text-green-500">
               Admin
-            </Link>
+            </Link> */}
           <Image
             src="/assets/icons/logo-full.svg"
             height={32}
