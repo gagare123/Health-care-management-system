@@ -3,8 +3,6 @@ import Image from "next/image";
 import RegisterForm from "@/components/forms/RegisterForm";
 import { getUser } from "@/lib/actions/patient.actions";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-
 
 
 interface SearchParamProps {
@@ -33,9 +31,6 @@ const Register = async ({ params }: SearchParamProps) => {
       <section className="remove-scrollbar container">
         <div className="sub-container max-w-[860px] flex-1 flex-col py-10">
          
-          {/* <Link href="/?admin=true" className="text-green-500">
-              Admin
-            </Link> */}
           <Image
             src="/assets/icons/logo-full.svg"
             height={32}

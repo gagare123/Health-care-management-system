@@ -38,21 +38,21 @@ const PatientForm = () => {
     setIsLoading(true);
 
     try {
-      console.log("🔄 Creating user with data:", values);
+      console.log(" Creating user with data:", values);
 
       const user = await createUser(values);
 
-      console.log("📦 User creation response:", user);
+      console.log(" User creation response:", user);
 
       if (user && user.$id) {
-        console.log("✅ User created successfully with ID:", user.$id);
+        console.log("User created successfully with ID:", user.$id);
         router.push(`/patients/${user.$id}/register`);
       } else {
-        console.error("❌ User creation failed - no user returned");
+        console.error(" User creation failed - no user returned");
         alert("Failed to create user. Please try again.");
       }
     } catch (error) {
-      console.error("❌ Error creating user:", error);
+      console.error(" Error creating user:", error);
       alert("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
