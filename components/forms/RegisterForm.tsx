@@ -383,12 +383,10 @@
 
 // export default RegisterForm;
 
-
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl } from "@/components/ui/form";
 import CustomFormField from "../CustomFormField";
@@ -447,6 +445,7 @@ const RegisterForm = ({ user }: RegisterFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<PatientFormValues>({
+    // @ts-ignore - zodResolver type inference issue with z.coerce.date()
     resolver: zodResolver(PatientFormValidation),
     defaultValues: {
       ...PatientFormDefaultValues,
