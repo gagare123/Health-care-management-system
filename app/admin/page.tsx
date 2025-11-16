@@ -1,13 +1,13 @@
-import React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import StartCard from '@/components/StartCard'
-import { getRecentAppointmentList } from '@/lib/actions/appointment.actions'
-import { columns } from '@/components/table/columns'
-import { DataTable } from '@/components/table/DataTable'
+import { redirect } from "next/navigation";
+import { DataTable } from "@/components/table/DataTable";
+import StartCard from "@/components/StartCard";
+import { getRecentAppointmentList } from "@/lib/actions/appointment.actions";
+import { columns } from "@/components/table/columns";
+import Image from "next/image";
+import Link from "next/link";
 
-const Admin = async () => {
-  const appointments = await getRecentAppointmentList()
+const AdminPage = async () => {
+  const appointments = await getRecentAppointmentList();
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col space-y-14">
@@ -40,7 +40,6 @@ const Admin = async () => {
             label="Scheduled appointments"
             icon={"/assets/icons/appointments.svg"}
           />
-
           <StartCard
             type="pending"
             count={appointments.pendingCount}
@@ -59,6 +58,7 @@ const Admin = async () => {
       </main>
     </div>
   );
-}
+};
 
-export default Admin
+export default AdminPage;
+

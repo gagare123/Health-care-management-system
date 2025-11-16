@@ -1,118 +1,128 @@
-'use client'
+"use client";
 
-import React from 'react'
-import Image from 'next/image'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
- 
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
-import {useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-//import { Value } from '@radix-ui/react-select'
-import {  decryptKey, encryptKey } from '../lib/utils';
+} from "@/components/ui/input-otp";
+import { X } from "lucide-react";
+import { validateAdminPasskey } from "@/lib/actions/admin.actions";
 
-const PasskeyModal = () => {
+interface PasskeyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const PasskeyModal = ({ isOpen, onClose }: PasskeyModalProps) => {
   const router = useRouter();
-  const path = usePathname()
-const [open, setOpen] = useState(true);
-const [passkey, setPasskey] = useState("")
-const [error, setError] = useState("")
+  const [passkey, setPasskey] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-const encryptedKey = typeof window !== 'undefined' ? window.localStorage.getItem
-('accessKey') : null;
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPasskey("");
+      setError("");
+    }
+  }, [isOpen]);
 
-useEffect(() =>{
-const accessKey = encryptedKey && decryptKey(encryptedKey);
-
- if(path){
-   if(accessKey === process.env.NEXT_PUBLIC_ADMIN_PASSKEY){
-   setOpen(false);
-   router.push('/admin')
-  }else{
-    setOpen(true);
-}
- }
-}, [encryptedKey, path, router])
-
-const validatePasskey = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>{
+  const closeModal = () => {
+    setPasskey("");
+    setError("");
+    onClose();
+  };
+const handleValidatePasskey = async (
+  e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+) => {
   e.preventDefault();
+  setIsLoading(true);
+  setError("");
 
-  if(passkey === process.env.NEXT_PUBLIC_ADMIN_PASSKEY){
-   const encryptedKey = encryptKey(passkey);
+  try {
+    // Server-side validation - passkey never exposed to client
+    const result = await validateAdminPasskey(passkey);
 
-   localStorage.setItem('accessKey', encryptedKey);
-
-   setOpen(false);
-  }else{
-    setError('Invalid passkey, Please try again.')
+    if (result.success) {
+      // ✅ Set session flag after successful validation
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("admin_verified", "true");
+      }
+      closeModal();
+      router.push("/admin");
+    } else {
+      setError(result.error || "Invalid passkey. Please try again.");
+    }
+  } catch (error) {
+    setError("An error occurred. Please try again.");
+  } finally {
+    setIsLoading(false);
   }
-}
-
-const closeModal = () => {
-  setOpen(false)
-  router.push('/')
-}
+};
 
   return (
-   <AlertDialog open={open} onOpenChange={setOpen}>
-    <AlertDialogContent className='shad-alert-dialog'>
-      <AlertDialogHeader>
-        <AlertDialogTitle className='flex items-start justify-between'>
-         Admin Access Verification
-         <Image 
-         src="/assets/icons/close.svg"
-         alt='close'
-         width={20}
-         height={20}
-         onClick={() => closeModal()}
-         className='cursor-pointer'
-         />
-         </AlertDialogTitle>
-        <AlertDialogDescription>
-          To access the admin page, please enter the passkey.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
+    <Dialog open={isOpen} onOpenChange={closeModal}>
+      <DialogContent className="shad-dialog sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-start justify-between">
+            Admin Access Verification
+            <button
+              onClick={closeModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </DialogTitle>
+          <DialogDescription>
+            To access the admin page, please enter the passkey.
+          </DialogDescription>
+        </DialogHeader>
 
-     <div>
-      <InputOTP maxLength={6} 
-      value={passkey} 
-      onChange={(Value) => setPasskey(Value)}>
-        <InputOTPGroup className='shad-otp'>
-          <InputOTPSlot className='shad-otp-slot' index={0} />
-          <InputOTPSlot className='shad-otp-slot' index={1} />
-          <InputOTPSlot className='shad-otp-slot' index={2} />
-          <InputOTPSlot className='shad-otp-slot' index={3} />
-          <InputOTPSlot className='shad-otp-slot' index={4} />
-          <InputOTPSlot className='shad-otp-slot' index={5} />
-        </InputOTPGroup>
-      </InputOTP>
-
-      {error && <p className='shad-error text-14-regular mt-4 flex justify-center'>
-        {error}
-        </p>}
-     </div>
-
-      <AlertDialogFooter>
-        <AlertDialogAction onClick={(e)=> validatePasskey(e)}
-          className='shad-primary-btn w-full'
+        <div className="space-y-4">
+          <InputOTP
+            maxLength={6}
+            value={passkey}
+            onChange={(value) => setPasskey(value)}
+            disabled={isLoading}
           >
-          Enter Admin Passkey
-         </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-  )
-}
+            <InputOTPGroup className="shad-otp">
+              <InputOTPSlot className="shad-otp-slot" index={0} />
+              <InputOTPSlot className="shad-otp-slot" index={1} />
+              <InputOTPSlot className="shad-otp-slot" index={2} />
+              <InputOTPSlot className="shad-otp-slot" index={3} />
+              <InputOTPSlot className="shad-otp-slot" index={4} />
+              <InputOTPSlot className="shad-otp-slot" index={5} />
+            </InputOTPGroup>
+          </InputOTP>
 
-export default PasskeyModal
+          {error && (
+            <p className="text-red-500 text-sm font-medium">{error}</p>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              onClick={handleValidatePasskey}
+              className="shad-primary-btn w-full"
+              disabled={passkey.length !== 6 || isLoading}
+            >
+              {isLoading ? "Verifying..." : "Enter Admin Passkey"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default PasskeyModal;
+

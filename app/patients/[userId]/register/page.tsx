@@ -4,12 +4,9 @@ import RegisterForm from "@/components/forms/RegisterForm";
 import { getUser } from "@/lib/actions/patient.actions";
 import { redirect } from "next/navigation";
 
-
 interface SearchParamProps {
   params: Promise<{ userId: string }>;
 }
-
-//Sentry.metrics.set("user_view_register", user.name);
 
 const Register = async ({ params }: SearchParamProps) => {
   const { userId } = await params;
@@ -39,22 +36,20 @@ const Register = async ({ params }: SearchParamProps) => {
             className="mb-12"
           />
 
-
           <RegisterForm user={user} />
 
           <p className="text-dark-600 xl:text-left">© 2025 CarePulse</p>
         </div>
       </section>
 
+      {/* Right side image - Hidden on mobile, visible on larger screens */}
       <Image
         src="/assets/images/register-img.png"
         height={1000}
         width={900}
         alt="patient register"
-        className="side-img max-w-[390px] h-auto"
-        style={{ width: 'auto', height: 'auto', maxWidth: '390px' }}
+        className="side-img max-w-[390px] hidden md:block"
         priority
-        
       />
     </div>
   );
