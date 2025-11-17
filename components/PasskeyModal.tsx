@@ -42,33 +42,37 @@ const PasskeyModal = ({ isOpen, onClose }: PasskeyModalProps) => {
     setError("");
     onClose();
   };
-const handleValidatePasskey = async (
-  e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError("");
 
-  try {
-    // Server-side validation - passkey never exposed to client
-    const result = await validateAdminPasskey(passkey);
+  const handleValidatePasskey = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    if (result.success) {
-      // ✅ Set session flag after successful validation
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("admin_verified", "true");
+    try {
+      // Server-side validation - passkey never exposed to client
+      const result = await validateAdminPasskey(passkey);
+
+      if (result.success) {
+        // ✅ Set session flag after successful validation
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("admin_verified", "true");
+        }
+        closeModal();
+        router.push("/admin");
+      } else {
+        setError(result.error || "Invalid passkey. Please try again.");
       }
-      closeModal();
-      router.push("/admin");
-    } else {
-      setError(result.error || "Invalid passkey. Please try again.");
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    setError("An error occurred. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
+
+  // Create masked value for display (show • for each character)
+  const maskedValue = "•".repeat(passkey.length);
 
   return (
     <Dialog open={isOpen} onOpenChange={closeModal}>
@@ -91,8 +95,16 @@ const handleValidatePasskey = async (
         <div className="space-y-4">
           <InputOTP
             maxLength={6}
-            value={passkey}
-            onChange={(value) => setPasskey(value)}
+            value={maskedValue}
+            onChange={(value) => {
+              // Only update if the length increased (user is typing)
+              if (value.length > maskedValue.length) {
+                setPasskey(passkey + value.slice(-1));
+              } else if (value.length < maskedValue.length) {
+                // User deleted a character
+                setPasskey(passkey.slice(0, -1));
+              }
+            }}
             disabled={isLoading}
           >
             <InputOTPGroup className="shad-otp">
