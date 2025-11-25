@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
@@ -55,7 +56,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="flex items-center justify-between px-6 py-3 border-b border-border bg-background sticky top-0 z-50">
-        <p className="text-2xl font-semibold">Health Care Management System</p>
+        <p className="text-2xl font-semibold">Health Care Management </p>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-3">
@@ -117,4 +118,3 @@ export default function Navbar() {
     </>
   );
 }
-
